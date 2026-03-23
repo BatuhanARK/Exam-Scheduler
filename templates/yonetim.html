@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yönetim Paneli</title>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--border:#2a2d3e;--accent:#4f6ef7;--text:#e2e4f0;--muted:#6b7280;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);}
+  
+  .main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+  .main h2{grid-column:1/-1;font-size:1.4rem;font-weight:600;margin-bottom:0;}
+  .main .subtitle{grid-column:1/-1;color:var(--muted);font-size:.85rem;margin-bottom:.5rem;}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
+  .panel h3{font-size:1rem;font-weight:600;margin-bottom:.3rem;}
+  .panel p{font-size:.8rem;color:var(--muted);margin-bottom:1rem;}
+  label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:.25rem;margin-top:.75rem;}
+  input, select{
+    width:100%;background:var(--bg);border:1px solid var(--border);
+    color:var(--text);border-radius:7px;padding:.45rem .75rem;
+    font-size:.85rem;font-family:inherit;margin-bottom:.1rem;
+  }
+  input:focus,select:focus{outline:none;border-color:var(--accent);}
+  .btn{border:none;border-radius:7px;padding:.5rem 1.2rem;font-size:.85rem;cursor:pointer;width:100%;margin-top:1rem;font-family:inherit;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{opacity:.88;}
+  .btn-danger{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+  .btn-danger:hover{background:rgba(239,68,68,.25);}
+  .btn-success{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);}
+  .btn-success:hover{background:rgba(16,185,129,.25);}
+  .result-box{
+    background:var(--bg);border:1px solid var(--border);border-radius:7px;
+    padding:.75rem;font-size:.78rem;font-family:'IBM Plex Mono',monospace;
+    margin-top:.75rem;min-height:48px;color:var(--muted);
+    max-height:180px;overflow-y:auto;white-space:pre-wrap;
+  }
+  .result-box.ok   {border-color:rgba(16,185,129,.4);color:var(--green);}
+  .result-box.error{border-color:rgba(239,68,68,.4); color:var(--red);}
+  .log-panel{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
+  .log-panel h3{font-size:1rem;font-weight:600;margin-bottom:1rem;}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;}
+  thead th{padding:.5rem .75rem;text-align:left;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);}
+  tbody td{padding:.55rem .75rem;border-bottom:1px solid var(--border);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  .badge-update{background:rgba(79,110,247,.12);color:var(--accent);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;}
+  .badge-insert{background:rgba(16,185,129,.12);color:var(--green);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;}
+  .badge-delete{background:rgba(239,68,68,.12);color:var(--red);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;}
+  @media(max-width:768px){.main{grid-template-columns:1fr;}}
+
+  .navbar{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:0 1.5rem;height:52px;
+    display:flex;align-items:center;gap:0;
+    position:sticky;top:0;z-index:100;
+  }
+  .nav-brand{
+    font-weight:600;font-size:.95rem;color:var(--text);
+    text-decoration:none;margin-right:2rem;white-space:nowrap;
+    flex-shrink:0;
+  }
+  .nav-links{
+    display:flex;align-items:center;gap:.25rem;flex:1;justify-content:center;
+  }
+  .nav-links a{
+    color:var(--muted);text-decoration:none;font-size:.83rem;
+    padding:.4rem .75rem;border-radius:7px;transition:all .15s;
+    white-space:nowrap;
+  }
+  .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
+  .nav-links a.aktif{color:var(--text);background:rgba(79,110,247,.15);}
+  .nav-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:2rem;}
+  .btn-cikis{
+    background:transparent;border:1px solid var(--border);
+    color:var(--muted);border-radius:7px;padding:.35rem .75rem;
+    font-family:inherit;font-size:.8rem;cursor:pointer;transition:all .15s;
+  }
+  .btn-cikis:hover{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="nav-brand">📅 Sınav Takvimi</a>
+  <div class="nav-links">
+      <a href="/sinav-programi">Sınav Programı</a>
+      <a href="/gozetmen-yuk">Gözetmen Yükü</a>
+      <a href="/program-tablosu">Program Tablosu</a>
+    <a href="/salon-doluluk">Salon Doluluk</a>
+      {% if rol == "admin" %}<a href="/yonetim" class="aktif">Yönetim</a>{% endif %}
+  </div>
+  <div class="nav-right">
+    <a href="/logout" style="text-decoration:none"><button class="btn-cikis">Çıkış</button></a>
+  </div>
+</nav>
+
+
+<div class="main">
+  <h2>Yönetim Paneli</h2>
+  <p class="subtitle">Stored Procedure çağrıları · App_Admin bağlantısı</p>
+
+  <!-- SP 1: Sınav Ekle -->
+  <div class="panel">
+    <h3>📌 Sınav Ekle</h3>
+    <p>sp_SinavEkle — çakışma kontrolü ile</p>
+    <label>Ders</label>
+    <select id="sinav-ders-id">
+      <option value="">Dersler yükleniyor...</option>
+    </select>
+    <label>Tarih</label>
+    <input type="date" id="sinav-tarih" value="2026-01-15" min="2026-01-05" max="2026-01-16">
+    <label>Oturum</label>
+    <select id="sinav-oturum-id">
+      <option value="">Oturumlar yükleniyor...</option>
+    </select>
+    <button class="btn btn-primary" onclick="sinavEkle()">Sınav Ekle</button>
+    <div class="result-box" id="r-sinav-ekle">Sonuç burada görünecek...</div>
+  </div>
+
+  <!-- SP 2 + SP 3: Salon & Gözetmen Ata -->
+  <div class="panel">
+    <h3>🏫 Salon ve Gözetmen Ata</h3>
+    <p>sp_SalonAta + sp_GozetmenAta</p>
+    <label>Sınav ID</label>
+    <input type="number" id="ata-sinav-id" placeholder="Örn: 1">
+    <button class="btn btn-primary" onclick="salonAta()">Salon Ata</button>
+    <div class="result-box" id="r-salon-ata">Salon atama sonucu...</div>
+
+    <label style="margin-top:1.25rem">Salon Ata sonrası Derslik ID</label>
+    <input type="number" id="ata-derslik-id" placeholder="Örn: 1">
+    <button class="btn btn-primary" onclick="gozetmenAta()" style="background:rgba(124,58,237,.8)">Gözetmen Ata</button>
+    <div class="result-box" id="r-gozetmen-ata">Gözetmen atama sonucu...</div>
+  </div>
+
+  <!-- UDF: Müsait Personel -->
+  <div class="panel">
+    <h3>👥 Müsait Personel Sorgula</h3>
+    <p>fn_MusaitPersonelListesi UDF</p>
+    <label>Tarih</label>
+    <input type="date" id="mp-tarih" value="2026-01-05">
+    <label>Oturum ID</label>
+    <input type="number" id="mp-oturum" value="1" min="1" max="5">
+    <button class="btn btn-primary" onclick="musaitPersonel()" style="background:rgba(16,185,129,.7)">Sorgula</button>
+    <div class="result-box" id="r-musait">Sonuç burada görünecek...</div>
+  </div>
+
+  <!-- SP 4: Yedek Al (BONUS) -->
+  <div class="panel">
+    <h3>💾 Veritabanı Yedekle</h3>
+    <p>sp_VeritabaniYedekle — C:\Yedekler klasörüne .bak dosyası</p>
+    <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:.75rem;font-size:.78rem;color:var(--yellow);margin-bottom:.5rem;">
+      ⚠ SQL Server servis hesabının C:\Yedekler klasörüne yazma yetkisi olmalıdır.
+    </div>
+    <button class="btn btn-danger" onclick="yedekAl()">💾 Yedek Al</button>
+    <div class="result-box" id="r-yedek">Yedekleme sonucu burada görünecek...</div>
+  </div>
+
+  <!-- Log Tablosu -->
+  <div class="log-panel">
+    <h3>📋 Son İşlem Logları
+      <button onclick="loadLog()" style="float:right;background:var(--border);border:none;color:var(--muted);border-radius:5px;padding:.2rem .6rem;font-size:.75rem;cursor:pointer;">Yenile</button>
+    </h3>
+    <div id="log-tablo"><div style="color:var(--muted);font-size:.85rem">Yükleniyor...</div></div>
+  </div>
+</div>
+
+<script>
+// Sayfa yüklenince ders ve oturum listelerini doldur
+async function init() {
+  const [dRes, oRes] = await Promise.all([
+    fetch('/api/dersler').then(r=>r.json()),
+    fetch('/api/oturumlar').then(r=>r.json())
+  ]);
+
+  const dSel = document.getElementById('sinav-ders-id');
+  dSel.innerHTML = dRes.data.map(d =>
+    `<option value="${d.DersID}">${d.DersKodu} — ${d.Ad} (${d.BolumAdi}, Yar:${d.Yariyil})</option>`
+  ).join('');
+
+  const oSel = document.getElementById('sinav-oturum-id');
+  oSel.innerHTML = oRes.data.map(o =>
+    `<option value="${o.OturumID}">${o.Tanim} (${o.BaslangicSaat})</option>`
+  ).join('');
+
+  loadLog();
+}
+
+function showResult(id, data, isError=false) {
+  const el = document.getElementById(id);
+  el.className = 'result-box ' + (isError ? 'error' : 'ok');
+  el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+
+async function sinavEkle() {
+  const body = {
+    ders_id:   parseInt(document.getElementById('sinav-ders-id').value),
+    tarih:     document.getElementById('sinav-tarih').value,
+    oturum_id: parseInt(document.getElementById('sinav-oturum-id').value)
+  };
+  try {
+    const res  = await fetch('/api/sinav-ekle', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const json = await res.json();
+    if (res.ok) showResult('r-sinav-ekle', json.data);
+    else        showResult('r-sinav-ekle', json.detail, true);
+  } catch(e) { showResult('r-sinav-ekle', e.message, true); }
+}
+
+async function salonAta() {
+  const body = { sinav_id: parseInt(document.getElementById('ata-sinav-id').value) };
+  try {
+    const res  = await fetch('/api/salon-ata', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const json = await res.json();
+    if (res.ok) showResult('r-salon-ata', json.data);
+    else        showResult('r-salon-ata', json.detail, true);
+  } catch(e) { showResult('r-salon-ata', e.message, true); }
+}
+
+async function gozetmenAta() {
+  const body = {
+    sinav_id:   parseInt(document.getElementById('ata-sinav-id').value),
+    derslik_id: parseInt(document.getElementById('ata-derslik-id').value)
+  };
+  try {
+    const res  = await fetch('/api/gozetmen-ata', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const json = await res.json();
+    if (res.ok) showResult('r-gozetmen-ata', json.data);
+    else        showResult('r-gozetmen-ata', json.detail, true);
+  } catch(e) { showResult('r-gozetmen-ata', e.message, true); }
+}
+
+async function musaitPersonel() {
+  const tarih  = document.getElementById('mp-tarih').value;
+  const oturum = document.getElementById('mp-oturum').value;
+  try {
+    const res  = await fetch(`/api/musait-personel?tarih=${tarih}&oturum_id=${oturum}`);
+    const json = await res.json();
+    const ozet = json.data.map(p => `${p.AdSoyad} (${p.BolumAdi}) — ${p.ToplamGorev} görev`).join('\n');
+    showResult('r-musait', `${json.count} müsait personel:\n\n${ozet}`);
+  } catch(e) { showResult('r-musait', e.message, true); }
+}
+
+async function yedekAl() {
+  document.getElementById('r-yedek').textContent = 'Yedekleme başlatıldı...';
+  document.getElementById('r-yedek').className   = 'result-box';
+  try {
+    const res  = await fetch('/api/yedek-al', {method:'POST'});
+    const json = await res.json();
+    if (res.ok) showResult('r-yedek', json.data);
+    else        showResult('r-yedek', json.detail, true);
+  } catch(e) { showResult('r-yedek', e.message, true); }
+}
+
+async function loadLog() {
+  const res  = await fetch('/api/log?limit=15');
+  const json = await res.json();
+  const rows = json.data || [];
+
+  const badgeCls = {UPDATE:'badge-update',INSERT:'badge-insert',DELETE:'badge-delete'};
+  const html = `<table>
+    <thead><tr><th>ID</th><th>Tablo</th><th>İşlem</th><th>Kayıt</th><th>Eski Değer</th><th>Yeni Değer</th><th>Kim</th><th>Tarih</th></tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td style="font-family:'IBM Plex Mono',monospace">${r.LogID}</td>
+      <td>${r.Tablo}</td>
+      <td><span class="${badgeCls[r.IslemTipi]||''}">${r.IslemTipi}</span></td>
+      <td>${r.KayitID??'—'}</td>
+      <td style="color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.EskiDeger??'—'}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.YeniDeger??'—'}</td>
+      <td style="font-size:.75rem">${r.Degistiren}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:.75rem">${r.Tarih?.slice(0,16)??''}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+
+  document.getElementById('log-tablo').innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>

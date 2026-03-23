@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sınav Takvimi — Giriş</title>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3e;--accent:#4f6ef7;--text:#e2e4f0;--muted:#6b7280;--red:#ef4444; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.35;}
+  .wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:1.5rem;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:1rem;display:block;}
+  h1{font-size:1.8rem;font-weight:600;line-height:1.2;margin-bottom:.3rem;}
+  .sub{color:var(--muted);font-size:.85rem;margin-bottom:2rem;}
+  .tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;}
+  .tab{flex:1;padding:.5rem;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;font-size:.85rem;cursor:pointer;transition:all .15s;}
+  .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.75rem;}
+  label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:.3rem;}
+  input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:.6rem .85rem;font-size:.9rem;font-family:inherit;margin-bottom:1rem;transition:border-color .15s;}
+  input:focus{outline:none;border-color:var(--accent);}
+  .btn-giris{width:100%;padding:.65rem;border-radius:8px;border:none;font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;transition:opacity .15s;margin-top:.25rem;}
+  .btn-giris:hover{opacity:.88;}
+  .btn-giris:disabled{opacity:.5;cursor:not-allowed;}
+  .hata{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--red);border-radius:8px;padding:.6rem .85rem;font-size:.82rem;margin-top:.75rem;display:none;}
+  .footer{text-align:center;font-size:.72rem;color:var(--muted);margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="wrap">
+  <span class="badge">YZM 2126 · Veritabanı Sistemleri</span>
+  <h1>Sınav Takvimi<br>Yönetim Sistemi</h1>
+  <p class="sub">Devam etmek için giriş yapın.</p>
+  <div class="tabs">
+    <button class="tab active" onclick="secTab('admin',this)">🔑 Yönetici</button>
+    <button class="tab"        onclick="secTab('viewer',this)">👁 Gözetmen</button>
+  </div>
+  <div class="card">
+    <label>Kullanıcı Adı</label>
+    <input type="text" id="kullanici" placeholder="Kullanıcı adınızı girin" autocomplete="username">
+    <label>Şifre</label>
+    <input type="password" id="sifre" placeholder="••••••••" onkeydown="if(event.key==='Enter')girisYap()">
+    <button class="btn-giris" id="btn" onclick="girisYap()">Giriş Yap</button>
+    <div class="hata" id="hata">Kullanıcı adı veya şifre hatalı.</div>
+  </div>
+  <div class="footer">admin / admin123 · gozetmen / gozetmen123</div>
+</div>
+<script>
+const KULLANICILAR={admin:{kullanici:'admin',sifre:'admin123'},viewer:{kullanici:'gozetmen',sifre:'gozetmen123'}};
+let aktifRol='admin';
+function secTab(rol,el){
+  aktifRol=rol;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('kullanici').value='';
+  document.getElementById('sifre').value='';
+  document.getElementById('hata').style.display='none';
+}
+async function girisYap(){
+  const k=document.getElementById('kullanici').value.trim();
+  const s=document.getElementById('sifre').value;
+  const hata=document.getElementById('hata');
+  const btn=document.getElementById('btn');
+  hata.style.display='none';
+  const dogru=KULLANICILAR[aktifRol];
+  if(k!==dogru.kullanici||s!==dogru.sifre){
+    hata.style.display='block';
+    document.getElementById('sifre').value='';
+    return;
+  }
+  btn.disabled=true;btn.textContent='Giriş yapılıyor...';
+  try{
+    const res=await fetch('/api/login?rol='+aktifRol,{method:'POST'});
+    const json=await res.json();
+    if(json.success)window.location.href=aktifRol==='admin'?'/yonetim':'/sinav-programi';
+    else{hata.textContent='Sunucu hatası.';hata.style.display='block';}
+  }catch(e){hata.textContent='Bağlantı hatası: '+e.message;hata.style.display='block';}
+  finally{btn.disabled=false;btn.textContent='Giriş Yap';}
+}
+</script>
+</body>
+</html>

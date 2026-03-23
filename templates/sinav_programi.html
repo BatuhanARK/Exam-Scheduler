@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sınav Programı</title>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --border: #2a2d3e;
+    --accent: #4f6ef7; --text: #e2e4f0; --muted: #6b7280;
+    --green: #10b981; --red: #ef4444; --yellow: #f59e0b;
+  }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); }
+  .main { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+  h2 { font-size: 1.4rem; font-weight: 600; margin-bottom: .3rem; }
+  .subtitle { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+  .filters {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+    margin-bottom: 1.5rem;
+  }
+  .filters label { font-size: .78rem; color: var(--muted); display: block; margin-bottom: .3rem; }
+  .filters input, .filters select {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 7px; padding: .4rem .75rem;
+    font-size: .85rem; font-family: inherit;
+  }
+  .filters input:focus, .filters select:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .btn-filter {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 7px;
+    padding: .45rem 1.2rem; font-size: .85rem; cursor: pointer;
+  }
+  .btn-filter:hover { opacity: .88; }
+  .btn-clear {
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--border); border-radius: 7px;
+    padding: .45rem 1rem; font-size: .85rem; cursor: pointer;
+  }
+  .stats {
+    display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: .75rem 1.25rem; flex: 1; min-width: 130px;
+  }
+  .stat-card .val { font-size: 1.6rem; font-weight: 600; }
+  .stat-card .lbl { font-size: .75rem; color: var(--muted); }
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  thead th {
+    background: var(--bg); padding: .75rem 1rem;
+    text-align: center; font-weight: 600; font-size: .78rem;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: .7rem 1rem; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  .badge-yeterli {
+    background: rgba(16,185,129,.15); color: var(--green);
+    border-radius: 5px; padding: .2rem .5rem; font-size: .75rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .badge-yetersiz {
+    background: rgba(239,68,68,.15); color: var(--red);
+    border-radius: 5px; padding: .2rem .5rem; font-size: .75rem;
+  }
+  .badge-yariyil {
+    background: rgba(79,110,247,.15); color: var(--accent);
+    border-radius: 5px; padding: .15rem .45rem; font-size: .75rem;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .badge-secmeli {
+    background: rgba(245,158,11,.12); color: var(--yellow);
+    border-radius: 5px; padding: .15rem .45rem; font-size: .72rem;
+  }
+  .tarih-group td:first-child { color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: .8rem; }
+  .loading { text-align: center; padding: 3rem; color: var(--muted); }
+  .empty   { text-align: center; padding: 3rem; color: var(--muted); font-size: .9rem; }
+
+  .navbar{
+    background:var(--surface);border-bottom:1px solid var(--border);
+    padding:0 1.5rem;height:52px;
+    display:flex;align-items:center;gap:0;
+    position:sticky;top:0;z-index:100;
+  }
+  .nav-brand{
+    font-weight:600;font-size:.95rem;color:var(--text);
+    text-decoration:none;margin-right:2rem;white-space:nowrap;
+    flex-shrink:0;
+  }
+  .nav-links{
+    display:flex;align-items:center;gap:.25rem;flex:1;justify-content:center;
+  }
+  .nav-links a{
+    color:var(--muted);text-decoration:none;font-size:.83rem;
+    padding:.4rem .75rem;border-radius:7px;transition:all .15s;
+    white-space:nowrap;
+  }
+  .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
+  .nav-links a.aktif{color:var(--text);background:rgba(79,110,247,.15);}
+  .nav-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:2rem;}
+  .btn-cikis{
+    background:transparent;border:1px solid var(--border);
+    color:var(--muted);border-radius:7px;padding:.35rem .75rem;
+    font-family:inherit;font-size:.8rem;cursor:pointer;transition:all .15s;
+  }
+  .btn-cikis:hover{border-color:var(--red);color:var(--red);}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="nav-brand">📅 Sınav Takvimi</a>
+  <div class="nav-links">
+      <a href="/sinav-programi" class="aktif">Sınav Programı</a>
+      <a href="/gozetmen-yuk">Gözetmen Yükü</a>
+      <a href="/program-tablosu">Program Tablosu</a>
+    <a href="/salon-doluluk">Salon Doluluk</a>
+      {% if rol == "admin" %}<a href="/yonetim">Yönetim</a>{% endif %}
+  </div>
+  <div class="nav-right">
+    <a href="/logout" style="text-decoration:none"><button class="btn-cikis">Çıkış</button></a>
+  </div>
+</nav>
+
+
+<div class="main">
+  <h2>Sınav Programı</h2>
+  <p class="subtitle">vw_SinavProgrami · Tüm sınavlar tarih ve oturum sırasıyla</p>
+
+  <div class="filters">
+    <div>
+      <label>Tarih</label>
+      <input type="date" id="f-tarih" min="2026-01-05" max="2026-01-16">
+    </div>
+    <div>
+      <label>Yarıyıl</label>
+      <select id="f-yariyil">
+        <option value="">Tümü</option>
+        <option>1</option><option>2</option><option>3</option>
+        <option>4</option><option>5</option><option>6</option>
+      </select>
+    </div>
+    <div>
+      <label>Bölüm</label>
+      <select id="f-bolum">
+        <option value="">Tümü</option>
+        <option>Yazılım Mühendisliği</option>
+        <option>Bilgisayar Mühendisliği</option>
+        <option>Elektrik-Elektronik Müh.</option>
+        <option>Makine Mühendisliği</option>
+        <option>İnşaat Mühendisliği</option>
+        <option>Endüstri Mühendisliği</option>
+      </select>
+    </div>
+    <button class="btn-filter" onclick="load()">Filtrele</button>
+    <button class="btn-clear" onclick="clear_filter()">Temizle</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="val" id="s-toplam">—</div><div class="lbl">Toplam Sınav</div></div>
+    <div class="stat-card"><div class="val" id="s-ogrenci">—</div><div class="lbl">Toplam Öğrenci</div></div>
+    <div class="stat-card"><div class="val" id="s-gozetmen">—</div><div class="lbl">Toplam Gözetmen</div></div>
+    <div class="stat-card"><div class="val" id="s-yetersiz" style="color:var(--red)">—</div><div class="lbl">Kapasite Sorunu</div></div>
+  </div>
+
+  <div class="table-wrap">
+    <div id="tablo-icerik" class="loading">Yükleniyor...</div>
+  </div>
+</div>
+
+<script>
+async function load() {
+  const tarih   = document.getElementById('f-tarih').value;
+  const yariyil = document.getElementById('f-yariyil').value;
+  const bolum   = document.getElementById('f-bolum').value;
+
+  let url = '/api/sinav-programi?';
+  if (tarih)   url += `tarih=${tarih}&`;
+  if (yariyil) url += `yariyil=${yariyil}&`;
+  if (bolum)   url += `bolum=${encodeURIComponent(bolum)}&`;
+
+  document.getElementById('tablo-icerik').innerHTML = '<div class="loading">Yükleniyor...</div>';
+
+  const res  = await fetch(url);
+  const json = await res.json();
+
+  if (!json.success || json.data.length === 0) {
+    document.getElementById('tablo-icerik').innerHTML = '<div class="empty">Kayıt bulunamadı.</div>';
+    return;
+  }
+
+  const rows = json.data;
+  // İstatistikler
+  document.getElementById('s-toplam').textContent   = rows.length;
+  document.getElementById('s-ogrenci').textContent  = rows.reduce((a,r)=>a+r.OgrenciSayisi,0);
+  document.getElementById('s-gozetmen').textContent = rows.reduce((a,r)=>a+r.GozetmenSayisi,0);
+  document.getElementById('s-yetersiz').textContent = rows.filter(r=>r.KapasiteDurumu!=='Yeterli').length;
+
+  let html = `<table>
+    <thead><tr>
+      <th>Tarih / Gün</th><th>Oturum</th><th>Ders</th>
+      <th>Bölüm</th><th>Y.Y.</th><th>Öğrenci</th>
+      <th>Salonlar</th><th>Kapasite</th><th>Gözetmen</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    const tarihFmt = r.Tarih ? r.Tarih.slice(0,10) : '';
+    const kap = r.KapasiteDurumu === 'Yeterli'
+      ? `<span class="badge-yeterli">${r.ToplamKapasite}</span>`
+      : `<span class="badge-yetersiz">⚠ ${r.ToplamKapasite}</span>`;
+    const tur = r.Ders_Turu === 'Secmeli'
+      ? `<span class="badge-secmeli">S</span> ` : '';
+
+    html += `<tr>
+      <td><span style="font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--accent)">${tarihFmt}</span><br>
+          <span style="font-size:.75rem;color:var(--muted)">${r.GunAdi||''}</span></td>
+      <td>${r.Oturum}<br><span style="font-size:.72rem;color:var(--muted)">${r.BaslangicSaat||''}</span></td>
+      <td><strong>${r.DersKodu}</strong><br><span style="font-size:.8rem;color:var(--muted)">${r.DersAdi}</span></td>
+      <td style="font-size:.82rem">${r.Bolum}</td>
+      <td><span class="badge-yariyil">${r.Yariyil}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace">${r.OgrenciSayisi}</td>
+      <td style="font-size:.8rem">${r.Salonlar||'—'}</td>
+      <td>${kap}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;text-align:center">${r.GozetmenSayisi}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('tablo-icerik').innerHTML = html;
+}
+
+function clear_filter() {
+  document.getElementById('f-tarih').value   = '';
+  document.getElementById('f-yariyil').value = '';
+  document.getElementById('f-bolum').value   = '';
+  load();
+}
+
+load();
+</script>
+</body>
+</html>

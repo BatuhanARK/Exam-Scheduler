@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Program Tablosu</title>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f1117;--surface:#1a1d27;--border:#2a2d3e;--accent:#4f6ef7;--text:#e2e4f0;--muted:#6b7280;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--purple:#a855f7;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);}
+
+  /* ── NAVBAR ── */
+  .navbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100;}
+  .nav-brand{font-weight:600;font-size:.95rem;color:var(--text);text-decoration:none;margin-right:2rem;white-space:nowrap;flex-shrink:0;}
+  .nav-links{display:flex;align-items:center;gap:.25rem;flex:1;justify-content:center;}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:.83rem;padding:.4rem .75rem;border-radius:7px;transition:all .15s;white-space:nowrap;}
+  .nav-links a:hover{color:var(--text);background:rgba(255,255,255,.06);}
+  .nav-links a.aktif{color:var(--text);background:rgba(79,110,247,.15);}
+  .nav-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0;margin-left:2rem;}
+  .btn-cikis{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:.35rem .75rem;font-family:inherit;font-size:.8rem;cursor:pointer;transition:all .15s;}
+  .btn-cikis:hover{border-color:var(--red);color:var(--red);}
+
+  /* ── SAYFA ── */
+  .main{max-width:1600px;margin:0 auto;padding:1.5rem;}
+  h2{font-size:1.3rem;font-weight:600;margin-bottom:.25rem;}
+  .sub{color:var(--muted);font-size:.82rem;margin-bottom:1.25rem;}
+
+  /* ── TABS ── */
+  .tab-bar{display:flex;gap:.5rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);padding-bottom:.75rem;}
+  .tab-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.4rem 1rem;font-family:inherit;font-size:.83rem;cursor:pointer;transition:all .15s;}
+  .tab-btn.aktif{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  /* ── MATRİS ── */
+  .matris-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;}
+  table.matris{border-collapse:collapse;min-width:100%;font-size:.78rem;}
+  table.matris th,table.matris td{border:1px solid var(--border);padding:0;vertical-align:top;}
+  .th-ust{background:var(--bg);padding:.6rem .75rem;text-align:center;font-weight:600;font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+  .th-sol{background:var(--bg);padding:.6rem .75rem;text-align:left;font-weight:600;font-size:.75rem;color:var(--muted);white-space:nowrap;min-width:120px;}
+  .hucre{padding:.5rem .6rem;min-width:170px;min-height:60px;vertical-align:top;}
+  .hucre.bos{background:rgba(255,255,255,.01);}
+  .hucre.dolu{background:rgba(79,110,247,.05);}
+  .ders-kodu{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent);font-weight:600;margin-bottom:.15rem;}
+  .ders-ad{font-size:.78rem;color:var(--text);margin-bottom:.25rem;line-height:1.3;}
+  .hucre-meta{display:flex;flex-wrap:wrap;gap:.2rem;margin-bottom:.2rem;}
+  .pill{border-radius:4px;padding:.1rem .4rem;font-size:.68rem;font-family:'IBM Plex Mono',monospace;}
+  .pill-yar{background:rgba(79,110,247,.15);color:var(--accent);}
+  .pill-ogr{background:rgba(16,185,129,.12);color:var(--green);}
+  .pill-kap{background:rgba(107,114,128,.12);color:var(--muted);}
+  .pill-kap.yetmez{background:rgba(239,68,68,.12);color:var(--red);}
+  .salon-str{font-size:.7rem;color:var(--muted);border-top:1px solid var(--border);padding-top:.2rem;margin-top:.2rem;}
+  .gozetmen-str{font-size:.68rem;color:var(--purple);margin-top:.15rem;}
+  .loading{text-align:center;padding:3rem;color:var(--muted);}
+
+  /* ── UDF PANELİ ── */
+  .udf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+  @media(max-width:900px){.udf-grid{grid-template-columns:1fr;}}
+  .udf-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .udf-baslik{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:.5rem;}
+  .udf-tag{background:rgba(168,85,247,.15);color:var(--purple);border-radius:4px;padding:.1rem .4rem;font-size:.7rem;font-family:'IBM Plex Mono',monospace;}
+  table.udf-tablo{width:100%;border-collapse:collapse;font-size:.8rem;}
+  table.udf-tablo th{padding:.5rem .75rem;text-align:left;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);}
+  table.udf-tablo td{padding:.5rem .75rem;border-bottom:1px solid var(--border);}
+  table.udf-tablo tr:last-child td{border-bottom:none;}
+  table.udf-tablo tr:hover td{background:rgba(255,255,255,.02);}
+  .bar-mini{display:inline-block;height:6px;border-radius:3px;background:var(--accent);vertical-align:middle;margin-right:.3rem;}
+
+  /* Yazdırma */
+  @media print{
+    .navbar,.tab-bar,.btn-print{display:none!important;}
+    .main{padding:0;}
+    .matris-wrap{border:none;overflow:visible;}
+    body{background:#fff;color:#000;}
+    .hucre.dolu{background:#f0f4ff;}
+    .th-ust,.th-sol{background:#f5f5f5;}
+  }
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="/" class="nav-brand">📅 Sınav Takvimi</a>
+  <div class="nav-links">
+    <a href="/sinav-programi">Sınav Programı</a>
+    <a href="/gozetmen-yuk">Gözetmen Yükü</a>
+    <a href="/program-tablosu" class="aktif">Program Tablosu</a>
+    <a href="/salon-doluluk">Salon Doluluk</a>
+    {% if rol == "admin" %}<a href="/yonetim">Yönetim</a>{% endif %}
+  </div>
+  <div class="nav-right">
+    <a href="/logout" style="text-decoration:none"><button class="btn-cikis">Çıkış</button></a>
+  </div>
+</nav>
+
+<div class="main">
+  <h2>Program Tablosu & UDF Çıktıları</h2>
+  <p class="sub">Tarih × Oturum matris görünümü · fn_SinavKapasite ve fn_PersonelGorevSayisi UDF çıktıları</p>
+
+  <div class="tab-bar">
+    <button class="tab-btn aktif" onclick="gosterTab('matris',this)">📋 Sınav Programı Matrisi</button>
+    <button class="tab-btn" onclick="gosterTab('udf',this)">⚡ UDF Çıktıları</button>
+    <button class="btn-print" onclick="window.print()"
+      style="margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:.4rem 1rem;font-family:inherit;font-size:.83rem;cursor:pointer;">
+      🖨 Yazdır / PDF
+    </button>
+  </div>
+
+  <!-- MATRİS SEKME -->
+  <div id="tab-matris">
+    <div id="matris-icerik" class="loading">Yükleniyor...</div>
+  </div>
+
+  <!-- UDF SEKME -->
+  <div id="tab-udf" style="display:none">
+    <div id="udf-icerik" class="loading">Yükleniyor...</div>
+  </div>
+</div>
+
+<script>
+function gosterTab(tab, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('aktif'));
+  el.classList.add('aktif');
+  document.getElementById('tab-matris').style.display = tab === 'matris' ? '' : 'none';
+  document.getElementById('tab-udf').style.display    = tab === 'udf'    ? '' : 'none';
+  if (tab === 'udf' && !udfYuklendi) loadUDF();
+}
+
+// ── MATRİS ──────────────────────────────────────────────────
+async function loadMatris() {
+  const res  = await fetch('/api/program-matrisi');
+  const json = await res.json();
+  if (!json.success) {
+    document.getElementById('matris-icerik').innerHTML = '<div class="loading">Hata: ' + json.detail + '</div>';
+    return;
+  }
+
+  const { tarihler, oturumlar, pivot } = json;
+
+  // Tablo başlığı — sütunlar = tarihler
+  let html = '<div class="matris-wrap"><table class="matris"><thead><tr>';
+  html += '<th class="th-sol">Oturum</th>';
+  tarihler.forEach(t => {
+    const d = new Date(t.tarih);
+    const fmt = d.toLocaleDateString('tr-TR', {day:'2-digit', month:'short'});
+    html += `<th class="th-ust">${fmt}<br><span style="font-weight:400;font-size:.7rem">${t.gun}</span></th>`;
+  });
+  html += '</tr></thead><tbody>';
+
+  // Satırlar = oturumlar
+  oturumlar.forEach(o => {
+    html += '<tr>';
+    html += `<td class="th-sol">${o.tanim}<br><span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted)">${o.saat}</span></td>`;
+
+    tarihler.forEach(t => {
+      const hucre = pivot[t.tarih]?.[String(o.id)];
+      if (!hucre || hucre.length === 0) {
+        html += '<td class="hucre bos"></td>';
+        return;
+      }
+      html += '<td class="hucre dolu">';
+      hucre.forEach(s => {
+        const kapYetmez = s.UDF_Kapasite < s.OgrenciSayisi;
+        html += `
+          <div style="margin-bottom:.4rem;padding-bottom:.4rem;border-bottom:1px solid var(--border)">
+            <div class="ders-kodu">${s.DersKodu}</div>
+            <div class="ders-ad">${s.DersAdi}</div>
+            <div class="hucre-meta">
+              <span class="pill pill-yar">${s.Yariyil}.YY</span>
+              <span class="pill pill-ogr">👤 ${s.OgrenciSayisi}</span>
+              <span class="pill pill-kap ${kapYetmez ? 'yetmez' : ''}">⬛ ${s.UDF_Kapasite}</span>
+            </div>
+            <div class="salon-str">🏫 ${s.Salonlar || '—'}</div>
+            <div class="gozetmen-str">
+              ${(s.Gozetmenler && s.Gozetmenler.length > 0)
+                ? s.Gozetmenler.map(g => '👁 ' + g).join('<br>')
+                : '👁 Gözetmen atanmamış'}
+            </div>
+          </div>`;
+      });
+      html += '</td>';
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('matris-icerik').innerHTML = html;
+}
+
+// ── UDF ─────────────────────────────────────────────────────
+let udfYuklendi = false;
+async function loadUDF() {
+  const res  = await fetch('/api/udf-ozet');
+  const json = await res.json();
+  udfYuklendi = true;
+  if (!json.success) {
+    document.getElementById('udf-icerik').innerHTML = '<div class="loading">Hata.</div>';
+    return;
+  }
+
+  const pg = json.personel_gorev;
+  const sk = json.sinav_kapasite;
+  const maxGorev = Math.max(...pg.map(r => r.GorevSayisi), 1);
+
+  // fn_PersonelGorevSayisi tablosu
+  let html = '<div class="udf-grid">';
+  html += `<div class="udf-panel">
+    <div class="udf-baslik">
+      <span class="udf-tag">UDF</span>
+      fn_PersonelGorevSayisi — Görev Yükleri
+    </div>
+    <table class="udf-tablo">
+      <thead><tr><th>Personel</th><th>Bölüm</th><th>Görev</th></tr></thead>
+      <tbody>`;
+  pg.forEach(r => {
+    const pct = (r.GorevSayisi / maxGorev * 100).toFixed(0);
+    html += `<tr>
+      <td>${r.AdSoyad}</td>
+      <td style="font-size:.75rem;color:var(--muted)">${r.Bolum}</td>
+      <td>
+        <span class="bar-mini" style="width:${pct}px"></span>
+        <span style="font-family:'IBM Plex Mono',monospace">${r.GorevSayisi}</span>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+
+  // fn_SinavKapasite tablosu
+  html += `<div class="udf-panel">
+    <div class="udf-baslik">
+      <span class="udf-tag">UDF</span>
+      fn_SinavKapasite — Kapasite Analizi
+    </div>
+    <table class="udf-tablo">
+      <thead><tr><th>Ders</th><th>Öğrenci</th><th>Kapasite</th><th>Fark</th></tr></thead>
+      <tbody>`;
+  sk.forEach(r => {
+    const fark = r.FazlaKapasite;
+    const renkFark = fark < 0 ? 'var(--red)' : fark === 0 ? 'var(--muted)' : 'var(--green)';
+    html += `<tr>
+      <td><span style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:.75rem">${r.DersKodu}</span></td>
+      <td style="font-family:'IBM Plex Mono',monospace;text-align:center">${r.OgrenciSayisi}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;text-align:center">${r.AtananKapasite}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;text-align:center;color:${renkFark}">
+        ${fark >= 0 ? '+' : ''}${fark}
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table></div></div>';
+
+  document.getElementById('udf-icerik').innerHTML = html;
+}
+
+// Sayfa yüklenince
+loadMatris();
+</script>
+</body>
+</html>
