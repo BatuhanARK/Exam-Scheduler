@@ -454,19 +454,44 @@ async def api_gozetmen_ata(body: GozetmenAtaModel):
 
 @app.post("/api/yedek-al")
 async def api_yedek_al():
-    """sp_VeritabaniYedekle stored procedure'ünü çağırır (BONUS)."""
     try:
-        conn   = get_conn("admin")
+        conn = get_conn("admin")
+        conn.autocommit = True
+
         cursor = conn.cursor()
         cursor.execute("EXEC sp_VeritabaniYedekle")
-        result = rows_to_dict(cursor)
-        conn.commit()
-        conn.close()
-        return {"success": True, "data": result}
 
-    except pyodbc.Error as e:
-        error_msg = str(e.args[1]) if len(e.args) > 1 else str(e)
-        raise HTTPException(status_code=400, detail=error_msg)
+        row = None
+        while True:
+            try:
+                r = cursor.fetchone()
+                if r:
+                    row = r
+            except:
+                pass
+
+            if not cursor.nextset():
+                break
+
+        conn.close()
+
+        if row:
+            return {
+                "success": True,
+                "data": {
+                    "Durum": row[0],
+                    "DosyaYolu": row[1],
+                    "Zaman": str(row[2])
+                }
+            }
+        else:
+            return {
+                "success": True,
+                "data": "Backup completed (no result returned)"
+            }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ═══════════════════════════════════════════════════════════════
