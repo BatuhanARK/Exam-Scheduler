@@ -1,48 +1,48 @@
-# Sınav Takvimi Yönetim Sistemi
-YZM 2126 — Veritabanı Sistemlerine Giriş
+# Exam Schedule Management System
 
-## Kurulum
 
-### 1. Python bağımlılıklarını kur
+## Installation
+
+### 1. Install Python dependencies
 ```
 pip install -r requirements.txt
 ```
 
-### 2. ODBC Driver'ı kur (yoksa)
+### 2. Install the ODBC Driver (if not available)
 https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server
-→ "ODBC Driver 17 for SQL Server" indir ve kur
+→ Download and install "ODBC Driver 17 for SQL Server"
 
-### 3. main.py içinde bağlantı ayarlarını güncelle
+### 3. Update connection settings in main.py
 ```python
 SERVER   = "localhost"   # Örn: DESKTOP-ABC\SQLEXPRESS
 DATABASE = "SinavTakvimiDB"
 DRIVER   = "ODBC Driver 17 for SQL Server"
 ```
 
-### 4. SQL Server Authentication'ı aktif et
-SSMS → Sunucuya sağ tıkla → Properties → Security
-→ "SQL Server and Windows Authentication mode" seç → OK
-→ SQL Server servisini yeniden başlat
+### 4. Activate SQL Server Authentication
+SSMS → Right-click on the server → Properties → Security
+→ "SQL Server and Select "Windows Authentication mode" → OK
+→ Restart SQL Server service
 
-### 5. Uygulamayı başlat
+### 5. Launch the application
 ```
 cd sinav_app
 uvicorn main:app --reload --port 8000
 ```
 
-### 6. Tarayıcıda aç
+### 6. Open in browser
 http://localhost:8000
 
-## Sayfalar
-| URL | Açıklama | Kullanıcı |
+## Pages
+| URL | Description | User |
 |-----|----------|-----------|
-| / | Giriş ekranı | — |
-| /sinav-programi | Sınav programı tablosu | App_Viewer |
-| /gozetmen-yuk | Gözetmen yük dağılımı | App_Viewer |
-| /salon-doluluk | Salon doluluk takvimi | App_Viewer |
-| /yonetim | SP çağrıları + log | App_Admin |
+| / | Login screen | — |
+| /sinav-programi | Exam schedule table | App_Viewer |
+| /gozetmen-yuk | Invigilator load distribution | App_Viewer |
+| /salon-doluluk | Salon occupancy calendar | App_Viewer |
+| /yonetim | SP calls + log | App_Admin |
 
-## API Endpoint'leri
+## API Endpoints
 | Method | URL | SP/UDF/View |
 |--------|-----|-------------|
 | GET | /api/sinav-programi | vw_SinavProgrami |
@@ -57,5 +57,5 @@ http://localhost:8000
 | GET | /api/sinav-kapasite/{id} | fn_SinavKapasite |
 | GET | /api/log | Log_Tablosu |
 
-## Otomatik API Dökümantasyonu
-http://localhost:8000/docs  (FastAPI Swagger UI)
+## Automatic API Documentation
+http://localhost:8000/docs (FastAPI Swagger UI)
